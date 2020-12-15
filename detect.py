@@ -21,6 +21,7 @@ videos_path = os.path.join('static', 'videos')
 output_format = '.mp4'
 data_time = 'test'
 
+
 def main(dataset_path, dataset):
     print('=========== %s ===========' % dataset)
 
@@ -29,18 +30,17 @@ def main(dataset_path, dataset):
 
     # initialize detector
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+        pretrained=True)
     # model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
     model.to(device=device)
     model.eval()
 
     # load background
-    # img_bkgd_bev = cv2.imread('calibration/' + dataset + '_background_calibrated.png')
-    img_bkgd_bev = cv2.imread(os.path.join('calibration', dataset + '_background_calibrated.png'))
+    # img_bkgd_bev = cv2.imread(os.path.join('calibration', dataset + '_background_calibrated.png'))
     # load transformation matrix
-
-    # transform_cam2world = np.loadtxt('calibration/' + dataset + '_matrix_cam2world.txt')
-    transform_cam2world = np.loadtxt(os.path.join('calibration', dataset + '_matrix_cam2world.txt'))
+    transform_cam2world = np.loadtxt(os.path.join(
+        'calibration', dataset + '_matrix_cam2world.txt'))
 
     # open video of dataset
     if dataset == 'oxford_town':
@@ -49,21 +49,24 @@ def main(dataset_path, dataset):
         thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(dataset, output_format)),cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width,frame_height))
+        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
+            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     elif dataset == 'mall':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 1
         thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(dataset, output_format)),cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width,frame_height))
+        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
+            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     elif dataset == 'grand_central':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 25  # grand central dataset has fps of 25
         thr_score = 0.5
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(dataset, output_format)),cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width,frame_height))
+        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
+            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     else:
         raise Exception('Invalid Dataset')
 
@@ -115,16 +118,15 @@ def main(dataset_path, dataset):
                     # draw a bounding box rectangle and label on the image
                     cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 2)
                     text = "{}: {:.2f}".format(LABELS[classIDs[i]], scores[i])
-                    cv2.putText(img, text, (int(x1), int(y1) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
+                    cv2.putText(img, text, (int(x1), int(y1) - 5),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
                     # cv2.imshow('img', img)
 
-                
                 # find the bottom center position and convert it to world coordinate
                 p_c = np.array([[(x1 + x2)/2], [y2], [1]])
                 p_w = transform_cam2world @ p_c
                 p_w = p_w / p_w[2]
                 pts_world.append([p_w[0][0], p_w[1][0]])
-        
 
         t1 = time.time()
 
@@ -145,7 +147,8 @@ def main(dataset_path, dataset):
         # visualize
         if vis:
             violation_pairs = find_violation(pts_world)
-            pts_roi_world, pts_roi_cam = get_roi_pts(dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
+            pts_roi_world, pts_roi_cam = get_roi_pts(
+                dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
 
             fig = plot_frame_one_row(
                 dataset=dataset,
@@ -178,9 +181,9 @@ def main(dataset_path, dataset):
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
 
-
     out.release()
 
     # save statistics
     # f.close()
-    pickle.dump(statistic_data, open(os.path.join(path_result, 'statistic_data.p'), 'wb'))
+    pickle.dump(statistic_data, open(os.path.join(
+        path_result, 'statistic_data.p'), 'wb'))
