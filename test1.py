@@ -27,10 +27,8 @@ def uploadfile():
     if request.method == 'POST':
         file = request.files['file']
         file_name = secure_filename(file.filename)
-        if os.path.isdir(videos_path) == False:
-            os.makedirs(videos_path)
-        if os.path.isdir(images_path) == False:
-            os.makedirs(images_path)
+        os.makedirs(videos_path, exist_ok=True)
+        os.makedirs(images_path, exist_ok=True)
 
         file.save(os.path.join(videos_path, file_name))
 
@@ -44,7 +42,7 @@ def uploadfile():
          two_d_hist_density_vs_avg_dists_path,
          two_d_hist_density_vs_min_dists_path,
          two_d_hist_density_vs_violation_path,
-         regression_density_vs_violations_path) = analyze_statistics(dataset)
+         regression_density_vs_violations_path) = analyze_statistics(dataset, file_name)
 
     output_file_name = 'output_{}'.format(
         file_name.split(".")[0]) + output_format

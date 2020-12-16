@@ -25,7 +25,8 @@ output_format = '.mp4'
 def main(file_name, dataset):
     print('=========== %s ===========' % dataset)
     dataset_path = os.path.join(videos_path, file_name)
-    path_result = os.path.join('results', file_name + '_' + detector)
+    result_file_name = file_name.split('.')[0]
+    path_result = os.path.join('results', result_file_name)
     os.makedirs(path_result, exist_ok=True)
     matplotlib.use('agg')
 

@@ -15,30 +15,35 @@ dict_dataset_names = {
     'grand_central': 'Train Station Dataset'
 }
 
-#path_results = 'results/test_faster_rcnn'  # faster RCNN results
+# path_results = 'results/test_faster_rcnn'  # faster RCNN results
 path_results = os.path.join('results', 'test_faster_rcnn')
 images_path = os.path.join('static', 'images')
 # path_results = 'additional_detectors/yolo_v4_darknet_official/results/result_yolo_v4_darknet_official'
 
 
-def analyze_statistics(dataset):
+def analyze_statistics(dataset, file_name):
     print('=======================')
     print('Processing %s ...' % dataset)
 
-    path_result = os.path.join(path_results, dataset)
-    path_analysis = os.path.join(path_results, 'analysis')
+    # path_result = os.path.join(path_results, dataset)
+    result_file_name = file_name.split('.')[0]
+    path_result = os.path.join('results', result_file_name)
+    path_analysis = os.path.join(path_result, 'analysis')
 
     os.makedirs(path_result, exist_ok=True)
     os.makedirs(path_analysis, exist_ok=True)
 
-    data = pickle.load(open(os.path.join(path_result, 'statistic_data.p'), 'rb'))
+    data = pickle.load(
+        open(os.path.join(path_result, 'statistic_data.p'), 'rb'))
     roi = ROIs[dataset]
     x_min, x_max, y_min, y_max = roi
     area = (x_max - x_min) * (y_max - y_min)
-    indexs_frame, ts_inference, pts_roi_all_frame, density, nums_ped = decode_data(data=data, roi=roi)
+    indexs_frame, ts_inference, pts_roi_all_frame, density, nums_ped = decode_data(
+        data=data, roi=roi)
     print('Mean inference time = %.6f' % np.mean(ts_inference))
 
-    all_min_dists, min_min_dists, avg_min_dists = cal_min_dists_all_frame(pts_roi_all_frame)
+    all_min_dists, min_min_dists, avg_min_dists = cal_min_dists_all_frame(
+        pts_roi_all_frame)
     violations = count_violation_pairs(pts_all_frames=pts_roi_all_frame)
 
     none_indexes = np.where(avg_min_dists == None)[0]
@@ -51,7 +56,6 @@ def analyze_statistics(dataset):
     # violations = violations / nums_ped
     # violations, density = density, violations
 
-
     # figure 1 - min dists
     fig = plt.figure(figsize=(5., 3.))
     fig.subplots_adjust(left=0.12, right=0.97, top=0.9, bottom=0.15)
@@ -63,9 +67,11 @@ def analyze_statistics(dataset):
     ax.set_xlabel(r'Closest Distance ($m$)')
     ax.set_ylabel('Count')
     ax.set(xlim=(0, 10))
-    closest_dists_path = os.path.join(path_analysis, dataset + constants.CLOSEST_DIST)
+    closest_dists_path = os.path.join(
+        path_analysis, dataset + constants.CLOSEST_DIST)
     fig.savefig(closest_dists_path)
-    closest_dists_path = os.path.join(images_path, dataset + constants.CLOSEST_DIST)
+    closest_dists_path = os.path.join(
+        images_path, dataset + constants.CLOSEST_DIST)
     fig.savefig(closest_dists_path)
     plt.close(fig)
 
@@ -79,9 +85,11 @@ def analyze_statistics(dataset):
     ax.grid()
     ax.set_xlabel(r'Minimal Closest Distance ($m$)')
     ax.set_ylabel('Count')
-    min_closest_dists_path = os.path.join(path_analysis, dataset + constants.MIN_CLOSEST_DIST)
+    min_closest_dists_path = os.path.join(
+        path_analysis, dataset + constants.MIN_CLOSEST_DIST)
     fig.savefig(min_closest_dists_path)
-    min_closest_dists_path = os.path.join(images_path, dataset + constants.MIN_CLOSEST_DIST)
+    min_closest_dists_path = os.path.join(
+        images_path, dataset + constants.MIN_CLOSEST_DIST)
     fig.savefig(min_closest_dists_path)
     plt.close(fig)
 
@@ -99,12 +107,15 @@ def analyze_statistics(dataset):
     extracted = ts <= t_max
 
     fig = plt.figure(figsize=(11.47, 4.33))
-    fig.subplots_adjust(left=0.07, bottom=0.12, right=0.98, top=0.91, hspace=0.36)
+    fig.subplots_adjust(left=0.07, bottom=0.12,
+                        right=0.98, top=0.91, hspace=0.36)
     fig.suptitle(dict_dataset_names[dataset])
 
     ax = fig.add_subplot(2, 1, 1)
-    ax.plot(ts[extracted], avg_min_dists[extracted], '.-', label=r'avg. closest physical distance $d_{avg}$ ($m$)')
-    ax.plot(ts[extracted], min_min_dists[extracted], '.-', label=r'min. closest physical distance $d_{min}$ ($m$)')
+    ax.plot(ts[extracted], avg_min_dists[extracted], '.-',
+            label=r'avg. closest physical distance $d_{avg}$ ($m$)')
+    ax.plot(ts[extracted], min_min_dists[extracted], '.-',
+            label=r'min. closest physical distance $d_{min}$ ($m$)')
     # ax.plot(ts[extracted], violations[extracted], '.-', label='# of violating instances (count)')
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
@@ -113,15 +124,18 @@ def analyze_statistics(dataset):
     ax.legend(loc=1)
 
     ax = fig.add_subplot(2, 1, 2)
-    ax.plot(ts[extracted], density[extracted], '.-', label=r'social density $\rho$ (ped./$m^2$)')
+    ax.plot(ts[extracted], density[extracted], '.-',
+            label=r'social density $\rho$ (ped./$m^2$)')
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
     # ax.set_ylabel('Density (ped./m^2)')
     ax.set(xlim=(0, t_max))
     ax.legend(loc=1)
-    stats_vs_time_path = os.path.join(path_analysis, dataset + constants.STATS_VS_TIME)
+    stats_vs_time_path = os.path.join(
+        path_analysis, dataset + constants.STATS_VS_TIME)
     fig.savefig(stats_vs_time_path)
-    stats_vs_time_path = os.path.join(images_path, dataset + constants.STATS_VS_TIME)
+    stats_vs_time_path = os.path.join(
+        images_path, dataset + constants.STATS_VS_TIME)
     fig.savefig(stats_vs_time_path)
     plt.close(fig)
 
@@ -142,9 +156,11 @@ def analyze_statistics(dataset):
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel('Avg. Closest Physical Distance $d_{avg}$ ($m$)')
-    two_d_hist_density_vs_avg_dists_path = os.path.join(path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
+    two_d_hist_density_vs_avg_dists_path = os.path.join(
+        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
     fig.savefig(two_d_hist_density_vs_avg_dists_path)
-    two_d_hist_density_vs_avg_dists_path = os.path.join(images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
+    two_d_hist_density_vs_avg_dists_path = os.path.join(
+        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
     fig.savefig(two_d_hist_density_vs_avg_dists_path)
     plt.close(fig)
 
@@ -161,9 +177,11 @@ def analyze_statistics(dataset):
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel(r'Min. Closest Physical Distance $d_{min}$ ($m$)')
-    two_d_hist_density_vs_min_dists_path = os.path.join(path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
+    two_d_hist_density_vs_min_dists_path = os.path.join(
+        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
     fig.savefig(two_d_hist_density_vs_min_dists_path)
-    two_d_hist_density_vs_min_dists_path = os.path.join(images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
+    two_d_hist_density_vs_min_dists_path = os.path.join(
+        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
     fig.savefig(two_d_hist_density_vs_min_dists_path)
     plt.close(fig)
 
@@ -181,9 +199,11 @@ def analyze_statistics(dataset):
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     # ax.set_yticks(np.arange(0, 0.15, 0.01))
     ax.set_xlabel(r'Num. of Social Distancing Violations $v$')
-    two_d_hist_density_vs_violation_path = os.path.join(path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
+    two_d_hist_density_vs_violation_path = os.path.join(
+        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
     fig.savefig(two_d_hist_density_vs_violation_path)
-    two_d_hist_density_vs_violation_path = os.path.join(images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
+    two_d_hist_density_vs_violation_path = os.path.join(
+        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
     fig.savefig(two_d_hist_density_vs_violation_path)
     plt.close(fig)
 
@@ -198,11 +218,13 @@ def analyze_statistics(dataset):
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel(r'Num. of Social Distancing Violations $v$')
 
-    print('Avg. Avg. Closest Physical Distance = %.6f' % np.mean(avg_min_dists))
+    print('Avg. Avg. Closest Physical Distance = %.6f' %
+          np.mean(avg_min_dists))
     print('Skewness = %.6f' % stats.skew(density))
 
     intercept, slope, preds, lbs, ubs, x_select, lb_select, ub_select = \
-        custom_simple_linear_regression(xs=violations, ys=density, x_select='y_intercept')
+        custom_simple_linear_regression(
+            xs=violations, ys=density, x_select='y_intercept')
 
     print('x_select = %.6f' % x_select)
     print('x_select_lb = %.6f' % lb_select)
@@ -211,7 +233,8 @@ def analyze_statistics(dataset):
     line = [0, max(violations)]
     # line = [-0.01, 0.175]
 
-    ax.plot(line, [intercept + slope * line[0], intercept + slope * line[1]], '-r')
+    ax.plot(line, [intercept + slope * line[0],
+                   intercept + slope * line[1]], '-r')
     ax.plot(preds, lbs, '-g')
     ax.plot(preds, ubs, '-g')
     # ax.plot(0.0, lb_select, '.r')
@@ -228,23 +251,25 @@ def analyze_statistics(dataset):
     # ax.hlines(intercept - std_dev, -w, w, color='r')
     # ax.vlines(0, intercept - std_dev, intercept + std_dev, color='r')
     # plt.show()
-    regression_density_vs_violations_path = os.path.join(path_analysis, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
+    regression_density_vs_violations_path = os.path.join(
+        path_analysis, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
     fig.savefig(regression_density_vs_violations_path)
-    regression_density_vs_violations_path = os.path.join(images_path, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
+    regression_density_vs_violations_path = os.path.join(
+        images_path, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
     fig.savefig(regression_density_vs_violations_path)
     plt.close(fig)
-    return (closest_dists_path, 
-            min_closest_dists_path, 
-                stats_vs_time_path, 
-                    two_d_hist_density_vs_avg_dists_path, 
-                        two_d_hist_density_vs_min_dists_path, 
-                            two_d_hist_density_vs_violation_path, 
-                                regression_density_vs_violations_path)
+    return (closest_dists_path,
+            min_closest_dists_path,
+            stats_vs_time_path,
+            two_d_hist_density_vs_avg_dists_path,
+            two_d_hist_density_vs_min_dists_path,
+            two_d_hist_density_vs_violation_path,
+            regression_density_vs_violations_path)
 
 
 def main():
     for dataset in ['oxford_town', 'mall', 'grand_central']:
-    # for dataset in ['oxford_town', 'mall']:
+        # for dataset in ['oxford_town', 'mall']:
 
         analyze_statistics(dataset=dataset)
 
