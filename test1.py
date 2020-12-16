@@ -27,8 +27,14 @@ def uploadfile():
     if request.method == 'POST':
         file = request.files['file']
         file_name = secure_filename(file.filename)
+
+        videos_dir = os.path.join(videos_path, file_name.split('.')[0])
+        images_dir = os.path.join(images_path, file_name.split('.')[0])
+
         os.makedirs(videos_path, exist_ok=True)
         os.makedirs(images_path, exist_ok=True)
+        os.makedirs(videos_dir, exist_ok=True)
+        os.makedirs(images_dir, exist_ok=True)
 
         file.save(os.path.join(videos_path, file_name))
 
