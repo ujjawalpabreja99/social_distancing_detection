@@ -6,6 +6,7 @@ import glob
 import numpy as np
 import time
 import pickle
+import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
 from plotting import plot_frame, plot_frame_one_row, get_roi_pts
@@ -26,6 +27,7 @@ def main(file_name, dataset):
     dataset_path = os.path.join(videos_path, file_name)
     path_result = os.path.join('results', file_name + '_' + detector)
     os.makedirs(path_result, exist_ok=True)
+    matplotlib.use('agg')
 
     # initialize detector
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -62,8 +64,14 @@ def main(file_name, dataset):
         frame_height = int(cap.get(4))
     else:
         raise Exception('Invalid Dataset')
-    out = cv2.VideoWriter(os.path.join(videos_path, 'output_{}'.format(
-        file_name)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
+
+    output_file_name = 'output_{}'.format(
+        file_name.split(".")[0]) + output_format
+
+    output_file_path = os.path.join(videos_path, output_file_name)
+
+    out = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(
+        *'avc1'), 1, (frame_width, frame_height))
     # f = open(os.path.join(path_result, 'statistics.txt'), 'w')
     statistic_data = []
     i_frame = 0
