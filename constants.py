@@ -1,0 +1,7 @@
+CLOSEST_DIST = '_closest_dists.png'
+MIN_CLOSEST_DIST = '_min_closest_dists.png'
+STATS_VS_TIME = '_statistics_vs_time.png'
+TWO_D_HIST_DENSITY_VS_AVG_DISTS = '_2d_hist_density_vs_avg_dists.png'
+TWO_D_HIST_DENSITY_VS_MIN_DISTS = '_2d_hist_density_vs_min_dists.png'
+TWO_D_HIST_DENSITY_VS_VIOLATIONS = '_2d_hist_density_vs_violation.png'
+REGRESSION_DENSITY_VS_VIOLATION = '_regression_density_vs_violation.png'
