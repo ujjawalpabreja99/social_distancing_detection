@@ -19,13 +19,12 @@ COLORS = np.random.randint(0, 255, size=(len(LABELS), 3), dtype="uint8")
 detector = 'faster_rcnn'
 videos_path = os.path.join('static', 'videos')
 output_format = '.mp4'
-data_time = 'test'
 
 
-def main(dataset_path, dataset):
+def main(file_name, dataset):
     print('=========== %s ===========' % dataset)
-
-    path_result = os.path.join('results', data_time + '_' + detector, dataset)
+    dataset_path = os.path.join(videos_path, file_name)
+    path_result = os.path.join('results', file_name + '_' + detector)
     os.makedirs(path_result, exist_ok=True)
 
     # initialize detector
@@ -49,27 +48,22 @@ def main(dataset_path, dataset):
         thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
-            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     elif dataset == 'mall':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 1
         thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
-            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     elif dataset == 'grand_central':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 25  # grand central dataset has fps of 25
         thr_score = 0.5
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
-        out = cv2.VideoWriter(os.path.join(videos_path, '{}_output{}'.format(
-            dataset, output_format)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     else:
         raise Exception('Invalid Dataset')
-
+    out = cv2.VideoWriter(os.path.join(videos_path, 'output_{}'.format(
+        file_name)), cv2.VideoWriter_fourcc(*'H264'), 1, (frame_width, frame_height))
     # f = open(os.path.join(path_result, 'statistics.txt'), 'w')
     statistic_data = []
     i_frame = 0
