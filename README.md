@@ -1,6 +1,6 @@
 # WEB APP - Social Distancing Detection
 
-## Setup
+## setup
 
 - Download the dataset from https://drive.google.com/file/d/1G6nZS-EZLrNBC68CRDf-yo2uj3k32j35/view?usp=sharing and extract it into the root of the repository
 - `conda create --name "env_name" python=3.7`
