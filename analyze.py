@@ -16,7 +16,6 @@ dict_dataset_names = {
 }
 
 # path_results = 'results/test_faster_rcnn'  # faster RCNN results
-path_results = os.path.join('results', 'test_faster_rcnn')
 images_path = os.path.join('static', 'images')
 # path_results = 'additional_detectors/yolo_v4_darknet_official/results/result_yolo_v4_darknet_official'
 
@@ -26,9 +25,10 @@ def analyze_statistics(dataset, file_name):
     print('Processing %s ...' % dataset)
 
     # path_result = os.path.join(path_results, dataset)
-    result_file_name = file_name.split('.')[0]
-    path_result = os.path.join('results', result_file_name)
+    file_base_name = file_name.split('.')[0]
+    path_result = os.path.join('results', file_base_name)
     path_analysis = os.path.join(path_result, 'analysis')
+    images_dir = os.path.join(images_path, file_base_name)
 
     os.makedirs(path_result, exist_ok=True)
     os.makedirs(path_analysis, exist_ok=True)
@@ -68,10 +68,10 @@ def analyze_statistics(dataset, file_name):
     ax.set_ylabel('Count')
     ax.set(xlim=(0, 10))
     closest_dists_path = os.path.join(
-        path_analysis, dataset + constants.CLOSEST_DIST)
+        path_analysis, constants.CLOSEST_DIST)
     fig.savefig(closest_dists_path)
     closest_dists_path = os.path.join(
-        images_path, dataset + constants.CLOSEST_DIST)
+        images_dir, constants.CLOSEST_DIST)
     fig.savefig(closest_dists_path)
     plt.close(fig)
 
@@ -86,10 +86,10 @@ def analyze_statistics(dataset, file_name):
     ax.set_xlabel(r'Minimal Closest Distance ($m$)')
     ax.set_ylabel('Count')
     min_closest_dists_path = os.path.join(
-        path_analysis, dataset + constants.MIN_CLOSEST_DIST)
+        path_analysis, constants.MIN_CLOSEST_DIST)
     fig.savefig(min_closest_dists_path)
     min_closest_dists_path = os.path.join(
-        images_path, dataset + constants.MIN_CLOSEST_DIST)
+        images_dir, constants.MIN_CLOSEST_DIST)
     fig.savefig(min_closest_dists_path)
     plt.close(fig)
 
@@ -132,10 +132,10 @@ def analyze_statistics(dataset, file_name):
     ax.set(xlim=(0, t_max))
     ax.legend(loc=1)
     stats_vs_time_path = os.path.join(
-        path_analysis, dataset + constants.STATS_VS_TIME)
+        path_analysis, constants.STATS_VS_TIME)
     fig.savefig(stats_vs_time_path)
     stats_vs_time_path = os.path.join(
-        images_path, dataset + constants.STATS_VS_TIME)
+        images_dir, constants.STATS_VS_TIME)
     fig.savefig(stats_vs_time_path)
     plt.close(fig)
 
@@ -157,10 +157,10 @@ def analyze_statistics(dataset, file_name):
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel('Avg. Closest Physical Distance $d_{avg}$ ($m$)')
     two_d_hist_density_vs_avg_dists_path = os.path.join(
-        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
+        path_analysis, constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
     fig.savefig(two_d_hist_density_vs_avg_dists_path)
     two_d_hist_density_vs_avg_dists_path = os.path.join(
-        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
+        images_dir, constants.TWO_D_HIST_DENSITY_VS_AVG_DISTS)
     fig.savefig(two_d_hist_density_vs_avg_dists_path)
     plt.close(fig)
 
@@ -178,10 +178,10 @@ def analyze_statistics(dataset, file_name):
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel(r'Min. Closest Physical Distance $d_{min}$ ($m$)')
     two_d_hist_density_vs_min_dists_path = os.path.join(
-        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
+        path_analysis, constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
     fig.savefig(two_d_hist_density_vs_min_dists_path)
     two_d_hist_density_vs_min_dists_path = os.path.join(
-        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
+        images_dir, constants.TWO_D_HIST_DENSITY_VS_MIN_DISTS)
     fig.savefig(two_d_hist_density_vs_min_dists_path)
     plt.close(fig)
 
@@ -200,10 +200,10 @@ def analyze_statistics(dataset, file_name):
     # ax.set_yticks(np.arange(0, 0.15, 0.01))
     ax.set_xlabel(r'Num. of Social Distancing Violations $v$')
     two_d_hist_density_vs_violation_path = os.path.join(
-        path_analysis, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
+        path_analysis, constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
     fig.savefig(two_d_hist_density_vs_violation_path)
     two_d_hist_density_vs_violation_path = os.path.join(
-        images_path, dataset + constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
+        images_dir, constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
     fig.savefig(two_d_hist_density_vs_violation_path)
     plt.close(fig)
 
@@ -252,10 +252,10 @@ def analyze_statistics(dataset, file_name):
     # ax.vlines(0, intercept - std_dev, intercept + std_dev, color='r')
     # plt.show()
     regression_density_vs_violations_path = os.path.join(
-        path_analysis, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
+        path_analysis, constants.REGRESSION_DENSITY_VS_VIOLATION)
     fig.savefig(regression_density_vs_violations_path)
     regression_density_vs_violations_path = os.path.join(
-        images_path, dataset + constants.REGRESSION_DENSITY_VS_VIOLATION)
+        images_dir, constants.REGRESSION_DENSITY_VS_VIOLATION)
     fig.savefig(regression_density_vs_violations_path)
     plt.close(fig)
     return (closest_dists_path,
