@@ -19,7 +19,7 @@ regression_density_vs_violations_path = ""
 
 @app.route('/')
 def upload_file():
-    return render_template('test.html')
+    return render_template('index.html')
 
 
 @app.route('/uploader', methods=['GET', 'POST'])
