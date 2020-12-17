@@ -3,4 +3,5 @@ __pycache__
 .DS_Store
 datasets
 results
-static
+static/videos
+static/images
