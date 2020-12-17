@@ -25,20 +25,22 @@ def upload_file():
 @app.route('/uploader', methods=['GET', 'POST'])
 def uploadfile():
     if request.method == 'POST':
-        file = request.files['file']
-        file_name = secure_filename(file.filename)
-
-        videos_dir = os.path.join(videos_path, file_name.split('.')[0])
-        images_dir = os.path.join(images_path, file_name.split('.')[0])
 
         os.makedirs(videos_path, exist_ok=True)
         os.makedirs(images_path, exist_ok=True)
+
+        file = request.files['file']
+        dataset = request.form['dataset']
+
+        file_name = secure_filename(file.filename)
+        file_base_name = file_name.split('.')[0]
+
+        videos_dir = os.path.join(videos_path, file_base_name)
+        images_dir = os.path.join(images_path, file_base_name)
         os.makedirs(videos_dir, exist_ok=True)
         os.makedirs(images_dir, exist_ok=True)
 
-        file.save(os.path.join(videos_path, file_name))
-
-        dataset = request.form['dataset']
+        file.save(os.path.join(videos_dir, file_name))
 
         main(file_name, dataset)
 
@@ -51,9 +53,9 @@ def uploadfile():
          regression_density_vs_violations_path) = analyze_statistics(dataset, file_name)
 
     output_file_name = 'output_{}'.format(
-        file_name.split(".")[0]) + output_format
+        file_base_name) + output_format
 
-    output_file_path = os.path.join(videos_path, output_file_name)
+    output_file_path = os.path.join(videos_dir, output_file_name)
 
     return render_template('postUpload.html',
                            data=output_file_path,

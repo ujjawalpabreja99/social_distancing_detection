@@ -24,9 +24,11 @@ output_format = '.mp4'
 
 def main(file_name, dataset):
     print('=========== %s ===========' % dataset)
-    dataset_path = os.path.join(videos_path, file_name)
-    result_file_name = file_name.split('.')[0]
-    path_result = os.path.join('results', result_file_name)
+    file_base_name = file_name.split('.')[0]
+    path_result = os.path.join('results', file_base_name)
+    videos_dir = os.path.join(videos_path, file_base_name)
+    dataset_path = os.path.join(videos_dir, file_name)
+
     os.makedirs(path_result, exist_ok=True)
     matplotlib.use('agg')
 
@@ -67,9 +69,9 @@ def main(file_name, dataset):
         raise Exception('Invalid Dataset')
 
     output_file_name = 'output_{}'.format(
-        file_name.split(".")[0]) + output_format
+        file_base_name) + output_format
 
-    output_file_path = os.path.join(videos_path, output_file_name)
+    output_file_path = os.path.join(videos_dir, output_file_name)
 
     out = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(
         *'avc1'), 1, (frame_width, frame_height))
