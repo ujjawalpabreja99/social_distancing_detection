@@ -26,8 +26,7 @@
     />
   </head>
   <body>
-    <!-- Loader -->
-    <div class="cover">
+    <div id="loader" class="cover">
       <div class="showbox">
         <div class="loader">
           <svg class="circular" viewBox="25 25 50 50">
@@ -56,10 +55,11 @@
       </div>
     </div>
 
-    <div style="padding: 100px" ;>
+    <div class="container my-5">
       <h3 class="heading3">
         Using Python to Monitor Social Distancing in a Public Area
       </h3>
+
       <p class="intro-para">
         Social-distancing is an important way to slow down the spread of
         infectious diseases. People are asked to limit their interactions with
@@ -80,82 +80,65 @@
       />
     </div>
 
-    <div style="padding: 100px; padding-top: 0">
+    <div class="container my-5">
       <h3 class="heading3">Social Distancing Detector</h3>
-      <h3 class="left-border-blue" style="margin-bottom: 30px">
+
+      <h3 class="left-border-blue">
         Upload a video on which social distancing detection has to be done.
         Choose the corresponding dataset to get the desired results.
       </h3>
-      <div
-        style="
-          padding: 0px 50px;
-          vertical-align: middle;
-          text-align: justify;
-          font-family: Roboto, Helvetica, Arial, Lucida, sans-serif;
-          font-weight: 100;
-          font-size: 20px;
-        "
-      >
+
+      <div id="form-container">
         <form
+          id="form"
           action="http://localhost:5000/uploader"
           method="POST"
           enctype="multipart/form-data"
+          novalidate
         >
-          <div class="form-group row">
-            <label for="vid" class="col-sm-2 col-form-label">
-              <strong>Video</strong>
-            </label>
-            <div class="col-sm-8 py-1">
-              <input
-                type="file"
-                class="form-control-file"
-                id="vid"
-                name="file"
-                accept="video/*"
-              />
+          <div class="form-group mb-3">
+            <label for="vid" class="col-md-12 px-0">Video</label>
+            <div class="col-md-6 px-0">
+              <div class="custom-file">
+                <input
+                  type="file"
+                  class="custom-file-input"
+                  id="video"
+                  name="file"
+                  accept="video/*"
+                  required
+                />
+                <label class="custom-file-label" for="validatedCustomFile">
+                  Choose video
+                </label>
+                <div class="invalid-feedback">Video required!</div>
+              </div>
             </div>
           </div>
-          <div class="form-group row">
-            <label for="dataset" class="col-sm-2 col-form-label">
-              <strong>Dataset</strong>
-            </label>
-            <div class="col-sm-8 py-1">
-              <select class="form-control" id="dataset" name="dataset">
-                <option selected disabled>Choose dataset</option>
+
+          <div class="form-group mb-3">
+            <label for="dataset" class="col-md-12 px-0">Dataset</label>
+            <div class="col-md-6 px-0">
+              <select
+                class="custom-select"
+                id="dataset"
+                name="dataset"
+                required
+              >
+                <option value="">Choose dataset</option>
                 <option value="grand_central">Grand Central</option>
                 <option value="mall">Mall</option>
                 <option value="oxford_town">Oxford Town</option>
               </select>
+              <div class="invalid-feedback">Dataset required!</div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" onclick="funcCall()">
-            SUBMIT
-          </button>
+
+          <input id="submit" type="submit" class="btn btn-primary" />
         </form>
       </div>
     </div>
 
-    <!-- <h1>Some Heading</h1>
-    <form
-      action="http://localhost:5000/uploader"
-      method="POST"
-      enctype="multipart/form-data"
-    >
-      <label for="vid">Select video:</label>
-      <input type="file" id="vid" name="file" accept="video/*" />
-      <label for="dataset">Select a dataset:</label>
-      <select id="dataset" name="dataset">
-        <option value="grand_central">Grand Central</option>
-        <option value="mall">Mall</option>
-        <option value="oxford_town">Oxford Town</option>
-      </select>
-      <button type="submit" onclick="funcCall()">SUBMIT</button>
-    </form> -->
-
-    <script>
-      function funcCall() {
-        document.querySelector(".cover").classList.add("remove-cover");
-      }
-    </script>
+    <script src="{{ url_for('static', filename='javascript/script.js') }}"></script>
   </body>
 </html>
