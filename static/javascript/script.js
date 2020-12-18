@@ -1,9 +1,15 @@
 const fileInput = document.querySelector(".custom-file-input");
 
 fileInput.addEventListener("change", (event) => {
-  const fileName = document.getElementById("video").files[0].name;
   const fileLabel = event.target.nextElementSibling;
-  fileLabel.innerText = fileName;
+
+  const files = document.getElementById("video").files;
+
+  if (!files[0]) {
+    fileLabel.innerText = "Choose file";
+  } else {
+    fileLabel.innerText = files[0].name;
+  }
 });
 
 const form = document.getElementById("form");
