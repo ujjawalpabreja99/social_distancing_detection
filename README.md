@@ -6,7 +6,5 @@
 - `conda create --name "env_name" python=3.7`
 - `conda activate "env_name"`
 - `pip3 install -r requirements.txt`
-- `pip3 install flask`
-- `pip3 install werkzeug`
-- `python test1.py`
+- `python app.py`
 - By default, Web app runs on `localhost:5000`
