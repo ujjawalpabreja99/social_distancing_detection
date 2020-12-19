@@ -121,7 +121,7 @@ def main(file_name, dataset):
 
                 if vis:
                     # draw a bounding box rectangle and label on the image
-                    cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 2)
+                    cv2.rectangle(img, (x1, y1), (x2, y2), [0, 255, 0], 2)
                     text = "{}: {:.2f}".format(LABELS[classIDs[i]], scores[i])
                     cv2.putText(img, text, (int(x1), int(y1) - 5),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
@@ -152,6 +152,18 @@ def main(file_name, dataset):
         # visualize
         if vis:
             violation_pairs = find_violation(pts_world)
+
+            for i in range(len(violation_pairs)):
+                box1 = violation_pairs[i][0]
+                (x1, y1) = (boxes[box1][0], boxes[box1][1])
+                (x2, y2) = (boxes[box1][2], boxes[box1][3])
+                cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 2)
+
+                box2 = violation_pairs[i][1]
+                (x1, y1) = (boxes[box2][0], boxes[box2][1])
+                (x2, y2) = (boxes[box2][2], boxes[box2][3])
+                cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 2)
+
             pts_roi_world, pts_roi_cam = get_roi_pts(
                 dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
 
