@@ -57,7 +57,7 @@ def uploadfile():
 
     output_file_path = os.path.join(videos_dir, output_file_name)
 
-    return render_template('postUpload.html',
+    return render_template('results.html',
                            data=output_file_path,
                            closest_dists_path=closest_dists_path,
                            min_closest_dists_path=min_closest_dists_path,
