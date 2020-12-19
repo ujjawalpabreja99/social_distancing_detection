@@ -57,7 +57,7 @@
 
     <div class="container my-5">
       <h3 class="heading3">
-        Using Python to Monitor Social Distancing in a Public Area
+        V-App and Cisco Meraki are here to help
       </h3>
 
       <p class="intro-para">
@@ -80,64 +80,85 @@
       />
     </div>
 
-    <div class="container my-5">
-      <h3 class="heading3">Social Distancing Detector</h3>
-
-      <h3 class="left-border-blue">
-        Upload a video on which social distancing detection has to be done.
-        Choose the corresponding dataset to get the desired results.
+    <div class="goal-box">  
+      <h3 class="heading3 goal-heading">
+        Our Project's Goal
       </h3>
+      <ol class="list">
+        <li class="item">
+          <h2 class="headline">Number one</h2><span>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Veritatis, distinctio ad corporis, laboriosam unde provident, architecto tenetur ea odio debitis delectus explicabo eum obcaecati vitae facere iusto laborum consequuntur neque.</span>
+        </li>
+        <li class="item">
+          <h2 class="headline">Number two</h2><span>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Veritatis, distinctio ad corporis, laboriosam unde provident, architecto tenetur ea odio debitis delectus explicabo eum obcaecati vitae facere iusto laborum consequuntur neque.</span>
+        </li>
+        <li class="item">
+          <h2 class="headline">Number three</h2><span>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Veritatis, distinctio ad corporis, laboriosam unde provident, architecto tenetur ea odio debitis delectus explicabo eum obcaecati vitae facere iusto laborum consequuntur neque.</span>
+        </li>
+      </ol>
+    </div>
 
-      <div id="form-container">
-        <form
-          id="form"
-          action="http://localhost:5000/uploader"
-          method="POST"
-          enctype="multipart/form-data"
-          novalidate
-        >
-          <div class="form-group mb-3">
-            <label for="vid" class="col-md-12 px-0">Video</label>
-            <div class="col-md-6 px-0">
-              <div class="custom-file">
-                <input
-                  type="file"
-                  class="custom-file-input"
-                  id="video"
-                  name="file"
-                  accept="video/*"
-                  required
-                />
-                <label class="custom-file-label" for="validatedCustomFile">
-                  Choose video
-                </label>
-                <div class="invalid-feedback">Video required!</div>
+    <div class="container-bg">
+      <div class="container my-5 form-box">
+        <h3 class="heading4">Social Distancing Detector</h3>
+        <br>
+
+     <!--    <h3 class="left-border-blue">
+          Upload a video on which social distancing detection has to be done.
+          Choose the corresponding dataset to get the desired results.
+        </h3> -->
+
+        <div id="form-container">
+          <form
+            id="form"
+            action="http://localhost:5000/uploader"
+            method="POST"
+            enctype="multipart/form-data"
+            novalidate
+          >
+            <div class="form-group mb-3">
+              <label for="vid" class="col-md-12 px-0">Choose Video to Analyse</label>
+              <div class="col-md-6 px-0">
+                <div class="custom-file">
+                  <input
+                    type="file"
+                    class="custom-file-input"
+                    id="video"
+                    name="file"
+                    accept="video/*"
+                    required
+                  />
+                  <label class="custom-file-label" for="validatedCustomFile">
+                    Select video
+                  </label>
+                  <div class="invalid-feedback">Video required!</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="form-group mb-3">
-            <label for="dataset" class="col-md-12 px-0">Dataset</label>
-            <div class="col-md-6 px-0">
-              <select
-                class="custom-select"
-                id="dataset"
-                name="dataset"
-                required
-              >
-                <option value="">Choose dataset</option>
-                <option value="grand_central">Grand Central</option>
-                <option value="mall">Mall</option>
-                <option value="oxford_town">Oxford Town</option>
-              </select>
-              <div class="invalid-feedback">Dataset required!</div>
+            <div class="form-group mb-3">
+              <label for="dataset" class="col-md-12 px-0">Choose location of the submitted video</label>
+              <div class="col-md-6 px-0">
+                <select
+                  class="custom-select"
+                  id="dataset"
+                  name="dataset"
+                  required
+                >
+                  <option value="">Choose dataset</option>
+                  <option value="grand_central">Grand Central</option>
+                  <option value="mall">Mall</option>
+                  <option value="oxford_town">Oxford Town</option>
+                </select>
+                <div class="invalid-feedback">Dataset required!</div>
+              </div>
             </div>
-          </div>
 
-          <input id="submit" type="submit" class="btn btn-primary" />
-        </form>
+            <input id="submit" type="submit" class="btn btn-primary" />
+          </form>
+        </div>
       </div>
     </div>
+
 
     <script src="{{ url_for('static', filename='javascript/script.js') }}"></script>
   </body>
