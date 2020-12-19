@@ -15,20 +15,15 @@ fileInput.addEventListener("change", (event) => {
 const form = document.getElementById("form");
 
 form.addEventListener("submit", () => {
+  form.classList.add("was-validated");
+
   const dataset = document.getElementById("dataset").value;
   const video = document.getElementById("video").value;
 
-  if (!video) {
+  if (!video || !dataset) {
     event.preventDefault();
-    form.classList.add("was-validated");
     return false;
   }
-  if (!dataset) {
-    event.preventDefault();
-    form.classList.add("was-validated");
-    return false;
-  }
-
   const loader = document.getElementById("loader");
   loader.classList.add("remove-cover");
   return true;
