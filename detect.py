@@ -10,19 +10,18 @@ import matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime
 from plotting import plot_frame, plot_frame_one_row, get_roi_pts
-from utils import ROIs, find_violation
+from utils1 import ROIs, find_violation
 
-from utils import COCO_INSTANCE_CATEGORY_NAMES as LABELS
+from utils1 import COCO_INSTANCE_CATEGORY_NAMES as LABELS
 import cv2
 np.set_printoptions(precision=4)
 COLORS = np.random.randint(0, 255, size=(len(LABELS), 3), dtype="uint8")
 
-detector = 'faster_rcnn'
 videos_path = os.path.join('static', 'videos')
 output_format = '.mp4'
 
 
-def main(file_name, dataset):
+def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     print('=========== %s ===========' % dataset)
     file_base_name = file_name.split('.')[0]
     path_result = os.path.join('results', file_base_name)
@@ -32,13 +31,26 @@ def main(file_name, dataset):
     os.makedirs(path_result, exist_ok=True)
     matplotlib.use('agg')
 
-    # initialize detector
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
-        pretrained=True)
-    # model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-    model.to(device=device)
-    model.eval()
+    frameCount = 10
+    personId = 0
+    thr_score = 0
+
+    if modelName == 'YOLO':
+        # Model YOLO
+        #modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape()
+        modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, force_reload=True).autoshape()  # force reload
+        frameCount = 10
+    else:
+        # RCNN
+        # initialize detector
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        modelRcnn = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+            pretrained=True)
+        # model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+        modelRcnn.to(device=device)
+        modelRcnn.eval()
+        frameCount = 5
+        personId = 1
 
     # load background
     # img_bkgd_bev = cv2.imread(os.path.join('calibration', dataset + '_background_calibrated.png'))
@@ -50,19 +62,28 @@ def main(file_name, dataset):
     if dataset == 'oxford_town':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 10  # oxford town dataset has fps of 25
-        thr_score = 0.9
+        if modelName == 'YOLO':
+            thr_score = 0.5
+        else:
+            thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
     elif dataset == 'mall':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 1
-        thr_score = 0.9
+        if modelName == 'YOLO':
+            thr_score = 0.5
+        else:
+            thr_score = 0.9
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
     elif dataset == 'grand_central':
         cap = cv2.VideoCapture(dataset_path)
         frame_skip = 25  # grand central dataset has fps of 25
-        thr_score = 0.5
+        if modelName == 'YOLO':
+            thr_score = 0.25
+        else:
+            thr_score = 0.5
         frame_width = int(cap.get(3))
         frame_height = int(cap.get(4))
     else:
@@ -86,7 +107,7 @@ def main(file_name, dataset):
         if ret is False:
             break
 
-        if i_frame > 5:
+        if i_frame > frameCount:
             break
 
         # skip frames to achieve 1hz detection
@@ -101,21 +122,43 @@ def main(file_name, dataset):
 
         # counting process time
         t0 = time.time()
+        boxes = []
+        classIds = []
+        scroes = []
 
-        # convert image from OpenCV format to PyTorch tensor format
-        img_t = np.moveaxis(img, -1, 0) / 255
-        img_t = torch.tensor(img_t, device=device).float()
+        if modelName == 'YOLO':
+            # YOLO Model
+            img_rgb = img[:, :, ::-1]  # OpenCV image (BGR to RGB)
+            results = modelYolo(img_rgb, size=640)  # includes NMS
+            arr = np.array(results.xyxy[0])
+            boxes = arr[:,0:4]
+            classIDs = arr[:,5]
+            scores = arr[:,4]
+            #print('YOLO MODEL')
+            # print(boxes)
+            # print(classIDs)
+            # print(scores)
 
-        # pedestrian detection
-        predictions = model([img_t])
-        boxes = predictions[0]['boxes'].cpu().data.numpy()
-        classIDs = predictions[0]['labels'].cpu().data.numpy()
-        scores = predictions[0]['scores'].cpu().data.numpy()
+        else:
+            #RCNN
+            # convert image from OpenCV format to PyTorch tensor format
+            img_t = np.moveaxis(img, -1, 0) / 255
+            img_t = torch.tensor(img_t, device=device).float()
+
+            # pedestrian detection
+            predictions = modelRcnn([img_t])
+            boxes = predictions[0]['boxes'].cpu().data.numpy()
+            classIDs = predictions[0]['labels'].cpu().data.numpy()
+            scores = predictions[0]['scores'].cpu().data.numpy()
+            # print('R-CNN')
+            # print(boxes)
+            # print(classIDs)
+            # print(scores)
 
         # get positions and plot on raw image
         pts_world = []
         for i in range(len(boxes)):
-            if classIDs[i] == 1 and scores[i] > thr_score:
+            if classIDs[i] == personId and scores[i] > thr_score:
                 # extract the bounding box coordinates
                 (x1, y1) = (boxes[i][0], boxes[i][1])
                 (x2, y2) = (boxes[i][2], boxes[i][3])
@@ -123,7 +166,7 @@ def main(file_name, dataset):
                 if vis:
                     # draw a bounding box rectangle and label on the image
                     cv2.rectangle(img, (x1, y1), (x2, y2), [0, 255, 0], 2)
-                    text = "{}: {:.2f}".format(LABELS[classIDs[i]], scores[i])
+                    text = "{}: {:.2f}".format('person', scores[i])
                     cv2.putText(img, text, (int(x1), int(y1) - 5),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
                     # cv2.imshow('img', img)
@@ -136,18 +179,20 @@ def main(file_name, dataset):
 
         t1 = time.time()
 
+        print(modelName)
+        print(pts_world)
         pts_world = np.array(pts_world)
         if dataset == 'oxford_town':
             pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
-
         elif dataset == 'mall':
             # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
         elif dataset == 'grand_central':
             # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
-
+        print(modelName)
+        print(pts_world)
         statistic_data.append((i_frame, t1 - t0, pts_world))
 
         # visualize
@@ -209,3 +254,4 @@ def main(file_name, dataset):
     # f.close()
     pickle.dump(statistic_data, open(os.path.join(
         path_result, 'statistic_data.p'), 'wb'))
+
