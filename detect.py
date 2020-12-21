@@ -238,7 +238,7 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
         print('Frame %d - Inference Time: %.2f' % (i_frame, t1 - t0))
         print('=======================')
         i_frame += 1
-        avg_inference_time = avg_inference_time + (t1 - t0);
+        avg_inference_time = avg_inference_time + (t1 - t0)
 
         out.write(img)
 
