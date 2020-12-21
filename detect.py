@@ -38,7 +38,8 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     if modelName == 'YOLO':
         # Model YOLO
         #modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape()
-        modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, force_reload=True).autoshape()  # force reload
+        modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+                                   pretrained=True, force_reload=True).autoshape()  # force reload
         frameCount = 10
     else:
         # RCNN
@@ -131,16 +132,16 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
             img_rgb = img[:, :, ::-1]  # OpenCV image (BGR to RGB)
             results = modelYolo(img_rgb, size=640)  # includes NMS
             arr = np.array(results.xyxy[0])
-            boxes = arr[:,0:4]
-            classIDs = arr[:,5]
-            scores = arr[:,4]
+            boxes = arr[:, 0:4]
+            classIDs = arr[:, 5]
+            scores = arr[:, 4]
             #print('YOLO MODEL')
             # print(boxes)
             # print(classIDs)
             # print(scores)
 
         else:
-            #RCNN
+            # RCNN
             # convert image from OpenCV format to PyTorch tensor format
             img_t = np.moveaxis(img, -1, 0) / 255
             img_t = torch.tensor(img_t, device=device).float()
@@ -179,8 +180,8 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
 
         t1 = time.time()
 
-        print(modelName)
-        print(pts_world)
+        # print(modelName)
+        # print(pts_world)
         pts_world = np.array(pts_world)
         if dataset == 'oxford_town':
             pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
@@ -191,8 +192,8 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
         elif dataset == 'grand_central':
             # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
-        print(modelName)
-        print(pts_world)
+        # print(modelName)
+        # print(pts_world)
         statistic_data.append((i_frame, t1 - t0, pts_world))
 
         # visualize
@@ -249,9 +250,7 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     avg_inference_time = avg_inference_time / i_frame
     print('Faster-RCNN: Average Inferece Time = %.2f' % avg_inference_time)
 
-
     # save statistics
     # f.close()
     pickle.dump(statistic_data, open(os.path.join(
         path_result, 'statistic_data.p'), 'wb'))
-

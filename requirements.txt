@@ -7,3 +7,7 @@ Pillow
 opencv-python
 flask
 werkzeug
+tqdm
+pyyaml
+pandas
+seaborn
