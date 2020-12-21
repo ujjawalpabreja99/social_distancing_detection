@@ -78,6 +78,7 @@ def main(file_name, dataset):
     # f = open(os.path.join(path_result, 'statistics.txt'), 'w')
     statistic_data = []
     i_frame = 0
+    avg_inference_time = 0
     # while cap.isOpened() and i_frame < 5000:
     while cap.isOpened():
         ret, img = cap.read()
@@ -192,6 +193,7 @@ def main(file_name, dataset):
         print('Frame %d - Inference Time: %.2f' % (i_frame, t1 - t0))
         print('=======================')
         i_frame += 1
+        avg_inference_time = avg_inference_time + (t1 - t0);
 
         out.write(img)
 
@@ -199,6 +201,9 @@ def main(file_name, dataset):
         #     break
 
     out.release()
+    avg_inference_time = avg_inference_time / i_frame
+    print('Faster-RCNN: Average Inferece Time = %.2f' % avg_inference_time)
+
 
     # save statistics
     # f.close()
