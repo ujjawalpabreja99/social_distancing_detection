@@ -31,6 +31,7 @@ def uploadfile():
 
         file = request.files['file']
         dataset = request.form['dataset']
+        model = request.form['model']
 
         file_name = secure_filename(file.filename)
         file_base_name = file_name.split('.')[0]
@@ -42,7 +43,7 @@ def uploadfile():
 
         file.save(os.path.join(videos_dir, file_name))
 
-        main(file_name, dataset)
+        main(file_name, dataset, model)
 
         (closest_dists_path,
             min_closest_dists_path,
