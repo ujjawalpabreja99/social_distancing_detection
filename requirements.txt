@@ -11,3 +11,7 @@ tqdm
 pyyaml
 pandas
 seaborn
+Cython
+scipy
+Pillow
+tensorboard
