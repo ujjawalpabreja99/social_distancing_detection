@@ -36,25 +36,23 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     thr_score = 0
 
     if modelName == 'YOLO':
-        # Model YOLO
-        #modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape()
-        modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s',
-                                   pretrained=True, force_reload=True).autoshape()  # force reload
+        # Model YOLOv5
+        modelYolo = torch.hub.load(
+            'ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape()
+        # modelYolo = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+        #                            pretrained=True, force_reload=True).autoshape()  # force reload
         frameCount = 10
     else:
-        # RCNN
+        # Faster RCNN
         # initialize detector
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         modelRcnn = torchvision.models.detection.fasterrcnn_resnet50_fpn(
             pretrained=True)
-        # model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
         modelRcnn.to(device=device)
         modelRcnn.eval()
         frameCount = 5
         personId = 1
 
-    # load background
-    # img_bkgd_bev = cv2.imread(os.path.join('calibration', dataset + '_background_calibrated.png'))
     # load transformation matrix
     transform_cam2world = np.loadtxt(os.path.join(
         'calibration', dataset + '_matrix_cam2world.txt'))
@@ -62,7 +60,7 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     # open video of dataset
     if dataset == 'oxford_town':
         cap = cv2.VideoCapture(dataset_path)
-        frame_skip = 10  # oxford town dataset has fps of 25
+        frame_skip = 10
         if modelName == 'YOLO':
             thr_score = 0.5
         else:
@@ -80,7 +78,7 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
         frame_height = int(cap.get(4))
     elif dataset == 'grand_central':
         cap = cv2.VideoCapture(dataset_path)
-        frame_skip = 25  # grand central dataset has fps of 25
+        frame_skip = 25
         if modelName == 'YOLO':
             thr_score = 0.25
         else:
@@ -96,8 +94,8 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
     output_file_path = os.path.join(videos_dir, output_file_name)
 
     out = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(
-        *'avc1'), 1, (frame_width, frame_height))
-    # f = open(os.path.join(path_result, 'statistics.txt'), 'w')
+        *'vp09'), 1, (frame_width, frame_height))
+
     statistic_data = []
     i_frame = 0
     avg_inference_time = 0
@@ -110,11 +108,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
 
         if i_frame > frameCount:
             break
-
-        # skip frames to achieve 1hz detection
-        # if not i_frame % frame_skip == 0:  # conduct detection per second
-        #     i_frame += 1
-        #     continue
 
         if i_frame / frame_skip < 20:
             vis = True
@@ -135,10 +128,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
             boxes = arr[:, 0:4]
             classIDs = arr[:, 5]
             scores = arr[:, 4]
-            #print('YOLO MODEL')
-            # print(boxes)
-            # print(classIDs)
-            # print(scores)
 
         else:
             # RCNN
@@ -151,10 +140,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
             boxes = predictions[0]['boxes'].cpu().data.numpy()
             classIDs = predictions[0]['labels'].cpu().data.numpy()
             scores = predictions[0]['scores'].cpu().data.numpy()
-            # print('R-CNN')
-            # print(boxes)
-            # print(classIDs)
-            # print(scores)
 
         # get positions and plot on raw image
         pts_world = []
@@ -170,7 +155,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
                     text = "{}: {:.2f}".format('person', scores[i])
                     cv2.putText(img, text, (int(x1), int(y1) - 5),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
-                    # cv2.imshow('img', img)
 
                 # find the bottom center position and convert it to world coordinate
                 p_c = np.array([[(x1 + x2)/2], [y2], [1]])
@@ -180,8 +164,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
 
         t1 = time.time()
 
-        # print(modelName)
-        # print(pts_world)
         pts_world = np.array(pts_world)
         if dataset == 'oxford_town':
             pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
@@ -192,8 +174,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
         elif dataset == 'grand_central':
             # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
-        # print(modelName)
-        # print(pts_world)
         statistic_data.append((i_frame, t1 - t0, pts_world))
 
         # visualize
@@ -223,15 +203,6 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
                 pairs=violation_pairs
             )
 
-            # fig = plot_frame(
-            #     dataset=dataset,
-            #     img_raw=img,
-            #     img_bev_bkgd_10x=img_bkgd_bev,
-            #     pts_roi_cam=pts_roi_cam,
-            #     pts_roi_world=pts_roi_world,
-            #     pts_w=pts_world,
-            #     pairs=violation_pairs
-            # )
             fig.savefig(os.path.join(path_result, 'frame%04d.png' % i_frame))
             plt.close(fig)
 
@@ -243,12 +214,9 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
 
         out.write(img)
 
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
-
     out.release()
     avg_inference_time = avg_inference_time / i_frame
-    print('Faster-RCNN: Average Inferece Time = %.2f' % avg_inference_time)
+    print(modelName+': Average Inferece Time = %.2f' % avg_inference_time)
 
     # save statistics
     # f.close()
