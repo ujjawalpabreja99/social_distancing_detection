@@ -187,7 +187,7 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
             violation_pairs = find_violation(pts_world)
 
             cv2.putText(img, 'Social Distancing Violations = ' + str(len(violation_pairs)),
-                        (20, frame_height - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [255, 255, 255], 2, cv2.LINE_AA, False)
+                        (20, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, [255, 255, 255], 2, cv2.LINE_AA, False)
 
             for i in range(len(violation_pairs)):
                 box1 = violation_pairs[i][0]
