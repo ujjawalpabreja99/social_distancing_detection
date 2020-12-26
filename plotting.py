@@ -25,7 +25,8 @@ def get_roi_pts(dataset, roi_raw, matrix_c2w):
     pts_world = np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1], [x1, y1]])
     pts_cam = []
     for pt_world in pts_world:
-        pt_cam = np.linalg.inv(matrix_c2w) @ np.array([[pt_world[0]], [pt_world[1]], [1]]).reshape(3)
+        pt_cam = np.linalg.inv(
+            matrix_c2w) @ np.array([[pt_world[0]], [pt_world[1]], [1]]).reshape(3)
         pts_cam.append(pt_cam / pt_cam[-1])
     pts_cam = np.array(pts_cam)
     return pts_world, pts_cam[:, :2]
@@ -47,8 +48,10 @@ def plot_frame_one_row(dataset, img_raw, pts_roi_cam, pts_roi_world, pts_w, pair
 
     # plot
     fig = plt.figure(figsize=(8.77, 3.06))
-    fig.subplots_adjust(left=0.08, bottom=0.15, right=0.98, top=0.90, wspace=0.3)
-    fig.suptitle('%s (%s)' % (dict_dataset_places[dataset], dict_dataset_names[dataset]))
+    fig.subplots_adjust(left=0.08, bottom=0.15,
+                        right=0.98, top=0.90, wspace=0.3)
+    fig.suptitle('%s (%s)' %
+                 (dict_dataset_places[dataset], dict_dataset_names[dataset]))
 
     # subplot 1 - camera view
     a = fig.add_subplot(1, 3, (1, 2))
