@@ -211,8 +211,11 @@ def main(file_name='mall.mp4', dataset='mall', modelName='YOLO'):
                 cv2.putText(img, text,
                             (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
-            cv2.putText(img, 'Social Distancing Violations = ' + str(len(violation_pairs)),
-                        (20, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, [255, 255, 255], 2, cv2.LINE_AA, False)
+            text = 'Social Distancing Violations = %d' % len(violation_pairs)
+            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+            cv2.rectangle(img, (0, 60), (frame_width, 0), (0, 0, 0), -1)
+            cv2.putText(img, text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (255, 255, 255), 2, cv2.LINE_AA, False)
 
             pts_roi_world, pts_roi_cam = get_roi_pts(
                 dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
