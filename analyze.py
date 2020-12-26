@@ -6,7 +6,7 @@ from scipy import stats
 import constants
 import os
 import pickle
-from utils1 import ROIs, count_violation_pairs, decode_data, cal_min_dists_all_frame, custom_simple_linear_regression
+from utilities import ROIs, count_violation_pairs, decode_data, cal_min_dists_all_frame, custom_simple_linear_regression
 
 
 dict_dataset_names = {
