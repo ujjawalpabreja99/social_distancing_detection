@@ -62,7 +62,7 @@ def analyze_statistics(dataset, file_name):
     fig.suptitle(dict_dataset_names[dataset])
 
     ax = fig.add_subplot(111)
-    ax.hist(all_min_dists, bins=100)
+    ax.hist(all_min_dists, bins=100, color='lightseagreen')
     ax.grid()
     ax.set_xlabel(r'Closest Distance ($m$)')
     ax.set_ylabel('Count')
@@ -81,7 +81,7 @@ def analyze_statistics(dataset, file_name):
     fig.suptitle(dict_dataset_names[dataset])
 
     ax = fig.add_subplot(111)
-    ax.hist(min_min_dists, bins=100)
+    ax.hist(min_min_dists, bins=100, color='lightseagreen')
     ax.grid()
     ax.set_xlabel(r'Minimal Closest Distance ($m$)')
     ax.set_ylabel('Count')
@@ -113,9 +113,9 @@ def analyze_statistics(dataset, file_name):
 
     ax = fig.add_subplot(2, 1, 1)
     ax.plot(ts[extracted], avg_min_dists[extracted], '.-',
-            label=r'avg. closest physical distance $d_{avg}$ ($m$)')
+            label=r'avg. closest physical distance $d_{avg}$ ($m$)', color='g')
     ax.plot(ts[extracted], min_min_dists[extracted], '.-',
-            label=r'min. closest physical distance $d_{min}$ ($m$)')
+            label=r'min. closest physical distance $d_{min}$ ($m$)', color='r')
     # ax.plot(ts[extracted], violations[extracted], '.-', label='# of violating instances (count)')
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
@@ -125,7 +125,7 @@ def analyze_statistics(dataset, file_name):
 
     ax = fig.add_subplot(2, 1, 2)
     ax.plot(ts[extracted], density[extracted], '.-',
-            label=r'social density $\rho$ (ped./$m^2$)')
+            label=r'social density $\rho$ (ped./$m^2$)', color='navy')
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
     # ax.set_ylabel('Density (ped./m^2)')
