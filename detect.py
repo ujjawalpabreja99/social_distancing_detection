@@ -94,6 +94,8 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     total_inference_time = 0
 
     while cap.isOpened():
+        if i_frame > 10:
+            break
         ret, img = cap.read()
         if ret is False:
             break
