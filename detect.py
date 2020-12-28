@@ -50,6 +50,8 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
         frame_count = 5
         person_id = 1
 
+    frame_count = 120
+
     # load transformation matrix
     transform_cam2world = np.loadtxt(os.path.join(
         'calibration', dataset + '_matrix_cam2world.txt'))
