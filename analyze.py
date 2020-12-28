@@ -94,7 +94,7 @@ def analyze_statistics(dataset, file_name):
     plt.close(fig)
 
     # figure 3 - density, min dist, min_min dist over time
-    t_max = 300
+    t_max = 120
 
     if dataset == 'oxford_town':
         ts = indexs_frame / 10
@@ -152,6 +152,7 @@ def analyze_statistics(dataset, file_name):
                bins=(bin_size, bin_size),
                # range=[[0.0, 6.0], [0.0, 0.15]],
                # norm=LogNorm()
+               cmap='Blues'
                )
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
@@ -173,6 +174,7 @@ def analyze_statistics(dataset, file_name):
                bins=(bin_size, bin_size),
                # range=[[0.0, 6.0], [0.0, 0.15]],
                # norm=LogNorm()
+               cmap='Blues'
                )
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
@@ -194,6 +196,7 @@ def analyze_statistics(dataset, file_name):
                bins=(bin_size, bin_size),
                # range=[[0.0, 6.0], [0.0, 0.15]],
                # norm=LogNorm()
+               cmap='Blues'
                )
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
@@ -234,11 +237,11 @@ def analyze_statistics(dataset, file_name):
     # line = [-0.01, 0.175]
 
     ax.plot(line, [intercept + slope * line[0],
-                   intercept + slope * line[1]], '-r')
-    ax.plot(preds, lbs, '-g')
-    ax.plot(preds, ubs, '-g')
+                   intercept + slope * line[1]], color='deeppink')
+    ax.plot(preds, lbs, color='navy')
+    ax.plot(preds, ubs, color='navy')
     # ax.plot(0.0, lb_select, '.r')
-    plt.text(0.0 + 0.5, lb_select - 0.005, r'$\rho_c$', fontsize=15, color='r')
+    plt.text(0.0 + 0.5, lb_select - 0.005, r'$\rho_c$', fontsize=15, color='deeppink')
     ax.set(xlim=(0.0, np.max(violations)))
     ax.set(ylim=(0.0, np.max(density)))
     # ax.vlines(0, -0.01, 0.15)
