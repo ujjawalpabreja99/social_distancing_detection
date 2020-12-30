@@ -115,13 +115,14 @@
 }
 
 #home {
-  background-image: url("https://static1.squarespace.com/static/5aaabe9e0dbda38066cb742d/t/5e6f93c8f45d5106bd1d85f7/1584370654668/?format=1500w");
+  /*background-image: url("https://static1.squarespace.com/static/5aaabe9e0dbda38066cb742d/t/5e6f93c8f45d5106bd1d85f7/1584370654668/?format=1500w");*/
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   height: 700px;
   position: relative;
   width: 100%;
+  background-image: url("../webappimages/background.png");
 }
 
 body {
@@ -139,8 +140,8 @@ body {
 .text-container div {
   font-family: "Montserrat", sans-serif, Arial, sans-serif;
   /*font-size: 30px;*/
-  color: white;
-  border: 10px white solid;
+  color: #343855;
+  border: 10px #343855 solid;
   padding: 10px 50px;
   width: 700px;
 }
@@ -216,7 +217,7 @@ body {
 
 .list {
   list-style: none;
-  width: 600px;
+  /*width: 600px;*/
   max-width: 90%;
 }
 
@@ -281,4 +282,14 @@ background-size: cover;*/
 .goal-heading {
   padding: 50px 0;
   text-decoration: underline;
+}
+
+.working {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.card-heading {
+  text-align: center;
 }
