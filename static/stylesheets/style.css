@@ -270,15 +270,15 @@ body {
 
 .goal-box {
   background-color: #f7f7f7;
-  /*background-image: url("https://www.v-app.io/wp-content/uploads/2018/11/bg2.png");
+  background-image: url("https://www.burohappold.com/wp-content/uploads/2020/04/social-distancing_gettystock.jpg");
   background-repeat: no-repeat;
-  background-size: cover;*/
+  background-size: cover;
   align-items: center;
+  height: 1000px;
 }
 
 .goal-heading {
   padding: 50px 0;
-  text-decoration: underline;
 }
 
 .working {
