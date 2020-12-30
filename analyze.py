@@ -94,14 +94,16 @@ def analyze_statistics(dataset, file_name):
     plt.close(fig)
 
     # figure 3 - density, min dist, min_min dist over time
-    t_max = 120
+    t_max = len(indexs_frame)
 
     if dataset == 'oxford_town':
         ts = indexs_frame / 10
+        t_max = t_max / 10
     elif dataset == 'mall':
         ts = indexs_frame / 1
     elif dataset == 'grand_central':
         ts = indexs_frame / 25
+        t_max = t_max / 25
     else:
         raise Exception('invalid dataset')
     extracted = ts <= t_max
@@ -225,9 +227,8 @@ def analyze_statistics(dataset, file_name):
           np.mean(avg_min_dists))
     print('Skewness = %.6f' % stats.skew(density))
 
-    intercept, slope, preds, lbs, ubs, x_select, lb_select, ub_select = \
-        custom_simple_linear_regression(
-            xs=violations, ys=density, x_select='y_intercept')
+    intercept, slope, preds, lbs, ubs, x_select, lb_select, ub_select = custom_simple_linear_regression(
+        xs=violations, ys=density, x_select='y_intercept')
 
     print('x_select = %.6f' % x_select)
     print('x_select_lb = %.6f' % lb_select)
@@ -241,7 +242,8 @@ def analyze_statistics(dataset, file_name):
     ax.plot(preds, lbs, color='navy')
     ax.plot(preds, ubs, color='navy')
     # ax.plot(0.0, lb_select, '.r')
-    plt.text(0.0 + 0.5, lb_select - 0.005, r'$\rho_c$', fontsize=15, color='deeppink')
+    plt.text(0.0 + 0.5, lb_select - 0.005, r'$\rho_c$',
+             fontsize=15, color='deeppink')
     ax.set(xlim=(0.0, np.max(violations)))
     ax.set(ylim=(0.0, np.max(density)))
     # ax.vlines(0, -0.01, 0.15)
