@@ -270,12 +270,9 @@ body {
 
 .goal-box {
   background-color: #f7f7f7;
-  /*background-image: url('https://chintanjain.com/img/journey/no-goal.jpg');
-background-repeat: no-repeat;
-background-size: cover;*/
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
+  /*background-image: url("https://www.v-app.io/wp-content/uploads/2018/11/bg2.png");
+  background-repeat: no-repeat;
+  background-size: cover;*/
   align-items: center;
 }
 
@@ -287,7 +284,8 @@ background-size: cover;*/
 .working {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
+  padding: 10px 20px 100px 20px;
 }
 
 .card-heading {
