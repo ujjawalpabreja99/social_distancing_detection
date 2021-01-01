@@ -27,7 +27,6 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     os.makedirs(results_path, exist_ok=True)
     matplotlib.use('agg')
 
-    frame_count = 10
     person_id = 0
     threshold_score = 0
 
@@ -35,22 +34,15 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
         # Model YOLOv5
         model_yolo_v5 = torch.hub.load(
             'ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape()
-        # model_yolo_v5 = torch.hub.load('ultralytics/yolov5', 'yolov5s',
-        #                            pretrained=True, force_reload=True).autoshape()  # force reload
-        frame_count = 10
         person_id = 0
     else:
         # Faster RCNN
-        # initialize detector
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_faster_rcnn = torchvision.models.detection.fasterrcnn_resnet50_fpn(
             pretrained=True)
         model_faster_rcnn.to(device=device)
         model_faster_rcnn.eval()
-        frame_count = 5
         person_id = 1
-
-    frame_count = 120
 
     # load transformation matrix
     transform_cam2world = np.loadtxt(os.path.join(
@@ -62,19 +54,16 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     frame_height = int(cap.get(4))
 
     if dataset == 'oxford_town':
-        frame_skip = 10
         if model_name == 'YOLO':
             threshold_score = 0.5
         else:
             threshold_score = 0.9
     elif dataset == 'mall':
-        frame_skip = 1
         if model_name == 'YOLO':
             threshold_score = 0.5
         else:
             threshold_score = 0.9
     elif dataset == 'grand_central':
-        frame_skip = 25
         if model_name == 'YOLO':
             threshold_score = 0.25
         else:
@@ -93,23 +82,20 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     i_frame = 0
     total_inference_time = 0
 
+    frame_count = 5
+
     while cap.isOpened():
-        if i_frame > 10:
+        # uncomment for demo
+        if i_frame > frame_count:
             break
+
         ret, img = cap.read()
         if ret is False:
             break
 
-        if i_frame > frame_count:
-            break
-
-        if i_frame / frame_skip < 20:
-            vis = True
-        else:
-            vis = False
-
         # counting process time
         t0 = time.time()
+
         boxes = []
         classIds = []
         scroes = []
@@ -128,7 +114,6 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
             # convert image from OpenCV format to PyTorch tensor format
             img_t = np.moveaxis(img, -1, 0) / 255
             img_t = torch.tensor(img_t, device=device).float()
-
             # pedestrian detection
             predictions = model_faster_rcnn([img_t])
             boxes = predictions[0]['boxes'].cpu().data.numpy()
@@ -143,16 +128,15 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
                 (x1, y1) = (boxes[i][0], boxes[i][1])
                 (x2, y2) = (boxes[i][2], boxes[i][3])
 
-                if vis:
-                    # draw a bounding box rectangle and label on the image
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 128, 0), 1)
-                    text = "{}: {:.2f}".format('person', scores[i])
-                    text_size = cv2.getTextSize(
-                        text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-                    cv2.rectangle(
-                        img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 128, 0), -1)
-                    cv2.putText(img, text,
-                                (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+                # draw a bounding box rectangle and label on the image
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 128, 0), 1)
+                text = "person: %.2f" % scores[i]
+                text_size = cv2.getTextSize(
+                    text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+                cv2.rectangle(
+                    img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 128, 0), -1)
+                cv2.putText(img, text,
+                            (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
                 # find the bottom center position and convert it to world coordinate
                 p_c = np.array([[(x1 + x2)/2], [y2], [1]])
@@ -167,64 +151,63 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
             pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
         elif dataset == 'mall':
-            # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
         elif dataset == 'grand_central':
-            # pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
             pass
+
+        # store current frame info
         statistic_data.append((i_frame, t1 - t0, pts_world))
 
         # visualize
-        if vis:
-            violation_pairs = find_violation(pts_world)
+        violation_pairs = find_violation(pts_world)
 
-            for i in range(len(violation_pairs)):
-                # draw bounding box rectangle on the violating pair of pedestrians
-                # box1 denotes the first pedestrian
-                box1 = violation_pairs[i][0]
-                (x1, y1) = (boxes[box1][0], boxes[box1][1])
-                (x2, y2) = (boxes[box1][2], boxes[box1][3])
-                cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
-                text = "{}: {:.2f}".format('person', scores[box1])
-                text_size = cv2.getTextSize(
-                    text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-                cv2.rectangle(
-                    img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
-                cv2.putText(img, text,
-                            (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
-                # box2 denotes the second pedestrian
-                box2 = violation_pairs[i][1]
-                (x1, y1) = (boxes[box2][0], boxes[box2][1])
-                (x2, y2) = (boxes[box2][2], boxes[box2][3])
-                cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
-                text = "{}: {:.2f}".format('person', scores[box2])
-                text_size = cv2.getTextSize(
-                    text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-                cv2.rectangle(
-                    img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
-                cv2.putText(img, text,
-                            (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+        for i in range(len(violation_pairs)):
+            # draw bounding box rectangle on the violating pair of pedestrians
+            # box1 denotes the first pedestrian
+            box1 = violation_pairs[i][0]
+            (x1, y1) = (boxes[box1][0], boxes[box1][1])
+            (x2, y2) = (boxes[box1][2], boxes[box1][3])
+            cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
+            text = "person: %.2f" % scores[box1]
+            text_size = cv2.getTextSize(
+                text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+            cv2.rectangle(
+                img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
+            cv2.putText(img, text,
+                        (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+            # box2 denotes the second pedestrian
+            box2 = violation_pairs[i][1]
+            (x1, y1) = (boxes[box2][0], boxes[box2][1])
+            (x2, y2) = (boxes[box2][2], boxes[box2][3])
+            cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
+            text = "person: %.2f" % scores[box2]
+            text_size = cv2.getTextSize(
+                text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+            cv2.rectangle(
+                img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
+            cv2.putText(img, text,
+                        (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
-            text = 'Social Distancing Violations = %d' % len(violation_pairs)
-            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-            cv2.rectangle(img, (0, 60), (frame_width, 0), (0, 0, 0), -1)
-            cv2.putText(img, text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (255, 255, 255), 2, cv2.LINE_AA, False)
+        text = 'Social Distancing Violations = %d' % len(violation_pairs)
+        text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+        cv2.rectangle(img, (0, 60), (frame_width, 0), (0, 0, 0), -1)
+        cv2.putText(img, text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (255, 255, 255), 2, cv2.LINE_AA, False)
 
-            pts_roi_world, pts_roi_cam = get_roi_pts(
-                dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
+        pts_roi_world, pts_roi_cam = get_roi_pts(
+            dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
 
-            fig = plot_frame_one_row(
-                dataset=dataset,
-                img_raw=img,
-                pts_roi_cam=pts_roi_cam,
-                pts_roi_world=pts_roi_world,
-                pts_w=pts_world,
-                pairs=violation_pairs
-            )
+        fig = plot_frame_one_row(
+            dataset=dataset,
+            img_raw=img,
+            pts_roi_cam=pts_roi_cam,
+            pts_roi_world=pts_roi_world,
+            pts_w=pts_world,
+            pairs=violation_pairs
+        )
 
-            fig.savefig(os.path.join(results_path, 'frame%04d.png' % i_frame))
-            plt.close(fig)
+        fig.savefig(os.path.join(results_path, 'frame%04d.png' % i_frame))
+        plt.close(fig)
 
         # update loop info
         print('Frame %d - Inference Time: %.2f' % (i_frame, t1 - t0))
@@ -240,6 +223,5 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
           (model_name, avg_inference_time))
 
     # save statistics
-    # f.close()
     pickle.dump(statistic_data, open(os.path.join(
         results_path, 'statistic_data.p'), 'wb'))
