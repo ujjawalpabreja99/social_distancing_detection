@@ -93,7 +93,7 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     frame_count = 5
 
     while cap.isOpened():
-        # comment line 99, 100 to run on full video
+        # comment the next two lines to run on full video
         if i_frame > frame_count:
             break
 
