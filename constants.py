@@ -22,3 +22,4 @@ ROIs = {
 }
 GREEN = (0, 128, 0)
 RED = (0, 0, 255)
+OUTPUT_FORMAT = '.mp4'

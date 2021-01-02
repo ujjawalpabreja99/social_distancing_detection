@@ -3,11 +3,11 @@ from werkzeug.utils import secure_filename
 import os
 from detect import main
 from analyze import analyze_statistics
+import constants
 app = Flask(__name__)
 videos_path = os.path.join('static', 'videos')
 images_path = os.path.join('static', 'images')
 app.config['UPLOAD_FOLDER'] = videos_path
-output_format = '.mp4'
 closest_dists_path = ""
 min_closest_dists_path = ""
 stats_vs_time_path = ""
@@ -53,7 +53,7 @@ def uploadfile():
          two_d_hist_density_vs_violation_path,
          regression_density_vs_violations_path) = analyze_statistics(dataset, file_name)
 
-    output_file_name = 'output_%s%s' % (file_base_name, output_format)
+    output_file_name = 'output_%s%s' % (file_base_name, constants.OUTPUT_FORMAT)
 
     output_file_path = os.path.join(videos_dir, output_file_name)
 

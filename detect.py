@@ -14,9 +14,6 @@ from datetime import datetime
 from plotting import plot_frame, plot_frame_one_row, get_roi_points
 from utilities import find_violation
 
-videos_path = os.path.join('static', 'videos')
-output_format = '.mp4'
-
 def draw_bounding_box(img, x1, y1, x2, y2, score, color):
     cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
     text = "person: %.2f" % score
@@ -31,6 +28,7 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     print('=========== %s ===========' % dataset)
     file_base_name = file_name.split('.')[0]
     results_path = os.path.join('results', file_base_name)
+    videos_path = os.path.join('static', 'videos')
     videos_dir = os.path.join(videos_path, file_base_name)
     dataset_path = os.path.join(videos_dir, file_name)
 
@@ -81,7 +79,7 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     else:
         raise Exception('Invalid Dataset')
 
-    output_file_name = 'output_%s%s' % (file_base_name, output_format)
+    output_file_name = 'output_%s%s' % (file_base_name, constants.OUTPUT_FORMAT)
 
     output_file_path = os.path.join(videos_dir, output_file_name)
 
@@ -95,7 +93,7 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     frame_count = 5
 
     while cap.isOpened():
-        # uncomment for demo
+        # comment line 99, 100 to run on full video
         if i_frame > frame_count:
             break
 
