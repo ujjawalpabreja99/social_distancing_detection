@@ -53,8 +53,7 @@ def uploadfile():
          two_d_hist_density_vs_violation_path,
          regression_density_vs_violations_path) = analyze_statistics(dataset, file_name)
 
-    output_file_name = 'output_{}'.format(
-        file_base_name) + output_format
+    output_file_name = 'output_%s%s' % (file_base_name, output_format)
 
     output_file_path = os.path.join(videos_dir, output_file_name)
 

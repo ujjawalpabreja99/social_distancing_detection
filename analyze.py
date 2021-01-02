@@ -6,28 +6,16 @@ from scipy import stats
 import constants
 import os
 import pickle
-from utilities import ROIs, count_violation_pairs, decode_data, cal_min_dists_all_frame, custom_simple_linear_regression
-
-
-dict_dataset_names = {
-    'oxford_town': 'Oxford Town Center Dataset',
-    'mall': 'Mall Dataset',
-    'grand_central': 'Train Station Dataset'
-}
-
-# path_results = 'results/test_faster_rcnn'  # faster RCNN results
-images_path = os.path.join('static', 'images')
-# path_results = 'additional_detectors/yolo_v4_darknet_official/results/result_yolo_v4_darknet_official'
-
+from utilities import count_violation_pairs, decode_data, cal_min_dists_all_frame, custom_simple_linear_regression
 
 def analyze_statistics(dataset, file_name):
     print('=======================')
     print('Processing %s ...' % dataset)
 
-    # path_result = os.path.join(path_results, dataset)
     file_base_name = file_name.split('.')[0]
     path_result = os.path.join('results', file_base_name)
     path_analysis = os.path.join(path_result, 'analysis')
+    images_path = os.path.join('static', 'images')
     images_dir = os.path.join(images_path, file_base_name)
 
     os.makedirs(path_result, exist_ok=True)
@@ -35,16 +23,16 @@ def analyze_statistics(dataset, file_name):
 
     data = pickle.load(
         open(os.path.join(path_result, 'statistic_data.p'), 'rb'))
-    roi = ROIs[dataset]
+    roi = constants.ROIs[dataset]
     x_min, x_max, y_min, y_max = roi
     area = (x_max - x_min) * (y_max - y_min)
-    indexs_frame, ts_inference, pts_roi_all_frame, density, nums_ped = decode_data(
+    indexs_frame, ts_inference, points_roi_all_frame, density, nums_ped = decode_data(
         data=data, roi=roi)
     print('Mean inference time = %.6f' % np.mean(ts_inference))
 
     all_min_dists, min_min_dists, avg_min_dists = cal_min_dists_all_frame(
-        pts_roi_all_frame)
-    violations = count_violation_pairs(pts_all_frames=pts_roi_all_frame)
+        points_roi_all_frame)
+    violations = count_violation_pairs(points_all_frames=points_roi_all_frame)
 
     none_indexes = np.where(avg_min_dists == None)[0]
     indexs_frame = np.delete(indexs_frame, none_indexes, 0)
@@ -53,13 +41,11 @@ def analyze_statistics(dataset, file_name):
     avg_min_dists = np.delete(avg_min_dists, none_indexes, 0)
     nums_ped = np.delete(nums_ped, none_indexes, 0)
     violations = np.delete(violations, none_indexes, 0)
-    # violations = violations / nums_ped
-    # violations, density = density, violations
 
-    # figure 1 - min dists
+    # figure 1 - closest_dists_path
     fig = plt.figure(figsize=(5., 3.))
     fig.subplots_adjust(left=0.12, right=0.97, top=0.9, bottom=0.15)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
 
     ax = fig.add_subplot(111)
     ax.hist(all_min_dists, bins=100, color='lightseagreen')
@@ -75,10 +61,10 @@ def analyze_statistics(dataset, file_name):
     fig.savefig(closest_dists_path)
     plt.close(fig)
 
-    # figure 2 - min-min dists
+    # figure 2 - min_closest_dists_path
     fig = plt.figure(figsize=(5., 3.))
     fig.subplots_adjust(left=0.12, right=0.97, top=0.9, bottom=0.15)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
 
     ax = fig.add_subplot(111)
     ax.hist(min_min_dists, bins=100, color='lightseagreen')
@@ -93,7 +79,7 @@ def analyze_statistics(dataset, file_name):
     fig.savefig(min_closest_dists_path)
     plt.close(fig)
 
-    # figure 3 - density, min dist, min_min dist over time
+    # figure 3 - density, closest_dists, min_closest_dists v/s time
     t_max = len(indexs_frame)
 
     if dataset == 'oxford_town':
@@ -111,17 +97,16 @@ def analyze_statistics(dataset, file_name):
     fig = plt.figure(figsize=(11.47, 4.33))
     fig.subplots_adjust(left=0.07, bottom=0.12,
                         right=0.98, top=0.91, hspace=0.36)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
 
     ax = fig.add_subplot(2, 1, 1)
     ax.plot(ts[extracted], avg_min_dists[extracted], '.-',
             label=r'avg. closest physical distance $d_{avg}$ ($m$)', color='g')
     ax.plot(ts[extracted], min_min_dists[extracted], '.-',
             label=r'min. closest physical distance $d_{min}$ ($m$)', color='r')
-    # ax.plot(ts[extracted], violations[extracted], '.-', label='# of violating instances (count)')
+
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
-    # ax.set_ylabel('Distance (m)')
     ax.set(xlim=(0, t_max))
     ax.legend(loc=1)
 
@@ -130,7 +115,6 @@ def analyze_statistics(dataset, file_name):
             label=r'social density $\rho$ (ped./$m^2$)', color='navy')
     ax.grid()
     ax.set_xlabel(r'Time [$sec$]')
-    # ax.set_ylabel('Density (ped./m^2)')
     ax.set(xlim=(0, t_max))
     ax.legend(loc=1)
     stats_vs_time_path = os.path.join(
@@ -141,21 +125,16 @@ def analyze_statistics(dataset, file_name):
     fig.savefig(stats_vs_time_path)
     plt.close(fig)
 
-    # ============= below are figures of 2d histograms ================
+    # 2d histograms 
+
     bin_size = 15
 
-    # ---- figure 4 ----
+    # figure 4 - density_vs_avg_dists_path
     fig = plt.figure(figsize=(4.15, 3.27))
     fig.subplots_adjust(left=0.18, right=1.0, top=0.9, bottom=0.14)
-
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
     ax = fig.add_subplot(1, 1, 1)
-    plt.hist2d(avg_min_dists, density,
-               bins=(bin_size, bin_size),
-               # range=[[0.0, 6.0], [0.0, 0.15]],
-               # norm=LogNorm()
-               cmap='Blues'
-               )
+    plt.hist2d(avg_min_dists, density, bins=(bin_size, bin_size), cmap='Blues')
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel('Avg. Closest Physical Distance $d_{avg}$ ($m$)')
@@ -167,17 +146,12 @@ def analyze_statistics(dataset, file_name):
     fig.savefig(two_d_hist_density_vs_avg_dists_path)
     plt.close(fig)
 
-    # ---- figure 5 ----
+    # figure 5 - density_vs_min_dists_path
     fig = plt.figure(figsize=(4.15, 3.27))
     fig.subplots_adjust(left=0.18, right=1.0, top=0.9, bottom=0.14)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
     ax = fig.add_subplot(1, 1, 1)
-    plt.hist2d(min_min_dists, density,
-               bins=(bin_size, bin_size),
-               # range=[[0.0, 6.0], [0.0, 0.15]],
-               # norm=LogNorm()
-               cmap='Blues'
-               )
+    plt.hist2d(min_min_dists, density, bins=(bin_size, bin_size), cmap='Blues')
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel(r'Min. Closest Physical Distance $d_{min}$ ($m$)')
@@ -189,20 +163,14 @@ def analyze_statistics(dataset, file_name):
     fig.savefig(two_d_hist_density_vs_min_dists_path)
     plt.close(fig)
 
-    # ---- figure 6 ----
+    # figure 6 - density_vs_violation_path
     fig = plt.figure(figsize=(4.15, 3.27))
     fig.subplots_adjust(left=0.18, right=1.0, top=0.9, bottom=0.14)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
     ax = fig.add_subplot(1, 1, 1)
-    plt.hist2d(violations, density,
-               bins=(bin_size, bin_size),
-               # range=[[0.0, 6.0], [0.0, 0.15]],
-               # norm=LogNorm()
-               cmap='Blues'
-               )
+    plt.hist2d(violations, density, bins=(bin_size, bin_size), cmap='Blues')
     plt.colorbar()
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
-    # ax.set_yticks(np.arange(0, 0.15, 0.01))
     ax.set_xlabel(r'Num. of Social Distancing Violations $v$')
     two_d_hist_density_vs_violation_path = os.path.join(
         path_analysis, constants.TWO_D_HIST_DENSITY_VS_VIOLATIONS)
@@ -215,7 +183,7 @@ def analyze_statistics(dataset, file_name):
     # ---- figure 7 ----
     fig = plt.figure(figsize=(3.28, 3.14))
     fig.subplots_adjust(left=0.21, bottom=0.15, right=0.97, top=0.90)
-    fig.suptitle(dict_dataset_names[dataset])
+    fig.suptitle(constants.DICT_DATASET_NAMES[dataset])
 
     ax = fig.add_subplot(1, 1, 1)
     ax.grid()
@@ -223,39 +191,29 @@ def analyze_statistics(dataset, file_name):
     ax.set_ylabel(r'Social Density $\rho$ (ped./$m^2$)')
     ax.set_xlabel(r'Num. of Social Distancing Violations $v$')
 
-    print('Avg. Avg. Closest Physical Distance = %.6f' %
+    print('Average Closest Physical Distance = %.6f' %
           np.mean(avg_min_dists))
     print('Skewness = %.6f' % stats.skew(density))
 
     intercept, slope, preds, lbs, ubs, x_select, lb_select, ub_select = custom_simple_linear_regression(
         xs=violations, ys=density, x_select='y_intercept')
 
-    print('x_select = %.6f' % x_select)
-    print('x_select_lb = %.6f' % lb_select)
-    print('x_select_ub = %.6f' % ub_select)
+    print('x_select = %.4f' % x_select)
+    print('x_select lower bound = %.4f' % lb_select)
+    print('x_select upper bound = %.4f' % ub_select)
 
     line = [0, max(violations)]
-    # line = [-0.01, 0.175]
 
     ax.plot(line, [intercept + slope * line[0],
                    intercept + slope * line[1]], color='deeppink')
     ax.plot(preds, lbs, color='navy')
     ax.plot(preds, ubs, color='navy')
-    # ax.plot(0.0, lb_select, '.r')
     plt.text(0.0 + 0.5, lb_select - 0.005, r'$\rho_c$',
              fontsize=15, color='deeppink')
     ax.set(xlim=(0.0, np.max(violations)))
     ax.set(ylim=(0.0, np.max(density)))
-    # ax.vlines(0, -0.01, 0.15)
-    # ax.hlines(0, line[0], line[1])
-    # w = 1/60*density_max
-    # ax.plot([-w, w], [ci[1], ci[1]], color='r')
-    # ax.plot([-w, w], [ci[0], ci[0]], color='r')
-    # ax.plot([0, 0], ci, color='r')
+    
 
-    # ax.hlines(intercept - std_dev, -w, w, color='r')
-    # ax.vlines(0, intercept - std_dev, intercept + std_dev, color='r')
-    # plt.show()
     regression_density_vs_violations_path = os.path.join(
         path_analysis, constants.REGRESSION_DENSITY_VS_VIOLATION)
     fig.savefig(regression_density_vs_violations_path)
@@ -271,13 +229,3 @@ def analyze_statistics(dataset, file_name):
             two_d_hist_density_vs_violation_path,
             regression_density_vs_violations_path)
 
-
-def main():
-    for dataset in ['oxford_town', 'mall', 'grand_central']:
-        # for dataset in ['oxford_town', 'mall']:
-
-        analyze_statistics(dataset=dataset)
-
-
-if __name__ == '__main__':
-    main()

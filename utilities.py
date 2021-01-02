@@ -1,97 +1,63 @@
 import numpy as np
+import constants
 from scipy import stats
 
 
-COCO_INSTANCE_CATEGORY_NAMES = [
-    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
-    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
-    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
-    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
-    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
-
-ROIs = {
-    'mall': (-2., 8., -7., 7.),
-    'grand_central': (-7., 25., 0., 34.),
-    'oxford_town':  (0., 14., 5., 28.),
-}
-
-
 def decode_data(data, roi):
-    """
-    - decode the raw data w.r.t. the defined roi.
-
-    :param data:
-    :param roi:
-    :return:
-    """
+    # decode the raw data w.r.t. the defined roi
     x_min, x_max, y_min, y_max = roi
     area = (x_max - x_min) * (y_max - y_min)
 
     density = []
     ts_inference = []
-    pts_roi_all_frame = []
+    points_roi_all_frame = []
     inds_frame = []
     nums_ped = []
 
-    for i_frame, t_inference, pts in data:
+    for i_frame, t_inference, points in data:
         count_in = 0
         count_out = 0
-        pts_roi = []
-        for pt in pts:
+        points_roi = []
+        for pt in points:
             if x_min < pt[0] < x_max and y_min < pt[1] < y_max:
                 count_in += 1
-                pts_roi.append(pt)
+                points_roi.append(pt)
             else:
                 count_out += 1
-        pts_roi_all_frame.append(np.array(pts_roi))
+        points_roi_all_frame.append(np.array(points_roi))
         density.append(count_in / area)
         ts_inference.append(t_inference)
         inds_frame.append(i_frame)
         nums_ped.append(count_in)
 
-        # print('frame %d - num. of ped inside roi: %d, outside: %d' % (i_frame, count_in, count_out))
-
-    return np.array(inds_frame), np.array(ts_inference), pts_roi_all_frame, np.array(density), nums_ped
+    return np.array(inds_frame), np.array(ts_inference), points_roi_all_frame, np.array(density), nums_ped
 
 
-def count_violation_pairs(pts_all_frames, dist=2.0):
+def count_violation_pairs(points_all_frames, dist=2.0):
     counts = []
-    for pts in pts_all_frames:
-        pairs = find_violation(pts, dist)
+    for points in points_all_frames:
+        pairs = find_violation(points, dist)
         counts.append(len(pairs))
     return np.array(counts)
 
 
-def find_violation(pts, dist=2.0):
-    """
-
-    :param pts: positions of all pedestrians in a single frame
-    :param dist: social distance
-    :return: a list of index pairs indicating two pedestrians who are violating social distancing
-    """
-    n = len(pts)  # number of pedestrians
+def find_violation(points, dist=2.0):
+    # a list of index pairs indicating two pedestrians who are violating social distancing
+    n = len(points)
     pairs = []
     for i in np.arange(0, n, 1):
         for j in np.arange(i+1, n, 1):
-            if np.linalg.norm(pts[i] - pts[j]) < dist:
+            if np.linalg.norm(points[i] - points[j]) < dist:
                 pairs.append((i, j))
     return pairs
 
 
-def cal_min_dists_all_frame(pts_all_frame):
+def cal_min_dists_all_frame(points_all_frame):
     all_min_dists = []
     avg_min_dists = []
     min_min_dists = []
-    for pts in pts_all_frame:
-        min_dists = cal_min_dists(pts)
+    for points in points_all_frame:
+        min_dists = cal_min_dists(points)
         all_min_dists.append(min_dists)
         min_min_dists.append(min(min_dists) if len(min_dists) > 0 else None)
         avg_min_dists.append(sum(min_dists) / len(min_dists) if len(min_dists) > 0 else None)
@@ -101,31 +67,21 @@ def cal_min_dists_all_frame(pts_all_frame):
     return all_min_dists, np.array(min_min_dists), np.array(avg_min_dists)
 
 
-def cal_min_dists(pts):
-    """
-
-    :param pts: positions of all pedestrians in a single frame
-    :return: a list of each pedestrian's min distances to other pedestrians
-    """
-    n = len(pts)
+def cal_min_dists(points):
+    # a list of each pedestrian's min distances to other pedestrians
+    n = len(points)
     ds_min = []
     for i in range(n):
         d_min = np.inf
         for j in range(n):
-            # closest distance from pedestrian i to pedestrian j
-            if i != j and np.linalg.norm(pts[i] - pts[j]) < d_min:
-                d_min = np.linalg.norm(pts[i] - pts[j])
+            if i != j and np.linalg.norm(points[i] - points[j]) < d_min:
+                d_min = np.linalg.norm(points[i] - points[j])
         if d_min is not np.inf:
             ds_min.append(d_min)
     return ds_min
 
 
 def custom_simple_linear_regression(xs, ys, x_select):
-
-    # reference 1: http://www2.stat.duke.edu/~tjl13/s101/slides/unit6lec3H.pdf
-    # reference 2: http://statweb.stanford.edu/~susan/courses/s141/horegconf.pdf
-
-    # assume: y = a + b*x + e
 
     def pred_interval(x_star, prob=0.95):
         se_pred = np.sqrt(variance * (1 + 1 / n + (x_star - xs.mean()) ** 2 / s_xx))
@@ -150,10 +106,7 @@ def custom_simple_linear_regression(xs, ys, x_select):
     se_a = np.sqrt(variance / s_xx)
     print('se_a_ = %.6f' % se_a)
 
-    # se_intercept_wiki = std_err * np.sqrt(np.sum(xs ** 2) / n)
-    # print('se_intercept_wiki = %.6f' % se_intercept_wiki)
-
-    preds, lbs, ubs = [], [], []  # prediction interval
+    preds, lbs, ubs = [], [], [] 
     for x in np.arange(0, np.max(xs), 0.001):
         lb, ub = pred_interval(x)
         preds.append(x)

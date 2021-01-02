@@ -9,13 +9,23 @@ import pickle
 import matplotlib
 import matplotlib.pyplot as plt
 import cv2
+import constants
 from datetime import datetime
-from plotting import plot_frame, plot_frame_one_row, get_roi_pts
-from utilities import ROIs, find_violation
+from plotting import plot_frame, plot_frame_one_row, get_roi_points
+from utilities import find_violation
 
 videos_path = os.path.join('static', 'videos')
 output_format = '.mp4'
 
+def draw_bounding_box(img, x1, y1, x2, y2, score, color):
+    cv2.rectangle(img, (x1, y1), (x2, y2), color, 1)
+    text = "person: %.2f" % score
+    text_size = cv2.getTextSize(
+        text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
+    cv2.rectangle(
+        img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), color, -1)
+    cv2.putText(img, text,
+                (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
 def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
     print('=========== %s ===========' % dataset)
@@ -102,7 +112,7 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
 
         if model_name == 'YOLO':
             # YOLO Model
-            img_rgb = img[:, :, ::-1]  # OpenCV image (BGR to RGB)
+            img_rgb = img[:, :, ::-1] 
             results = model_yolo_v5(img_rgb, size=640)
             arr = np.array(results.xyxy[0])
             boxes = arr[:, 0:4]
@@ -110,18 +120,16 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
             scores = arr[:, 4]
 
         else:
-            # RCNN
-            # convert image from OpenCV format to PyTorch tensor format
+            # Faster RCNN
             img_t = np.moveaxis(img, -1, 0) / 255
             img_t = torch.tensor(img_t, device=device).float()
-            # pedestrian detection
             predictions = model_faster_rcnn([img_t])
             boxes = predictions[0]['boxes'].cpu().data.numpy()
             classIDs = predictions[0]['labels'].cpu().data.numpy()
             scores = predictions[0]['scores'].cpu().data.numpy()
 
         # get positions and plot on raw image
-        pts_world = []
+        points_world = []
         for i in range(len(boxes)):
             if classIDs[i] == person_id and scores[i] > threshold_score:
                 # extract the bounding box coordinates
@@ -129,26 +137,19 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
                 (x2, y2) = (boxes[i][2], boxes[i][3])
 
                 # draw a bounding box rectangle and label on the image
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 128, 0), 1)
-                text = "person: %.2f" % scores[i]
-                text_size = cv2.getTextSize(
-                    text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-                cv2.rectangle(
-                    img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 128, 0), -1)
-                cv2.putText(img, text,
-                            (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+                draw_bounding_box(img, x1, y1, x2, y2, scores[i], constants.GREEN)
 
                 # find the bottom center position and convert it to world coordinate
                 p_c = np.array([[(x1 + x2)/2], [y2], [1]])
                 p_w = transform_cam2world @ p_c
                 p_w = p_w / p_w[2]
-                pts_world.append([p_w[0][0], p_w[1][0]])
+                points_world.append([p_w[0][0], p_w[1][0]])
 
         t1 = time.time()
 
-        pts_world = np.array(pts_world)
+        points_world = np.array(points_world)
         if dataset == 'oxford_town':
-            pts_world[:, [0, 1]] = pts_world[:, [1, 0]]
+            points_world[:, [0, 1]] = points_world[:, [1, 0]]
             pass
         elif dataset == 'mall':
             pass
@@ -156,10 +157,10 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
             pass
 
         # store current frame info
-        statistic_data.append((i_frame, t1 - t0, pts_world))
+        statistic_data.append((i_frame, t1 - t0, points_world))
 
         # visualize
-        violation_pairs = find_violation(pts_world)
+        violation_pairs = find_violation(points_world)
 
         for i in range(len(violation_pairs)):
             # draw bounding box rectangle on the violating pair of pedestrians
@@ -167,26 +168,12 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
             box1 = violation_pairs[i][0]
             (x1, y1) = (boxes[box1][0], boxes[box1][1])
             (x2, y2) = (boxes[box1][2], boxes[box1][3])
-            cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
-            text = "person: %.2f" % scores[box1]
-            text_size = cv2.getTextSize(
-                text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-            cv2.rectangle(
-                img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
-            cv2.putText(img, text,
-                        (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+            draw_bounding_box(img, x1, y1, x2, y2, scores[box1], constants.RED)
             # box2 denotes the second pedestrian
             box2 = violation_pairs[i][1]
             (x1, y1) = (boxes[box2][0], boxes[box2][1])
             (x2, y2) = (boxes[box2][2], boxes[box2][3])
-            cv2.rectangle(img, (x1, y1), (x2, y2), [0, 0, 255], 1)
-            text = "person: %.2f" % scores[box2]
-            text_size = cv2.getTextSize(
-                text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
-            cv2.rectangle(
-                img, (x1, y1), (int(x1 + text_size[0] + 3), int(y1 + text_size[1] + 4)), (0, 0, 255), -1)
-            cv2.putText(img, text,
-                        (x1, int(y1 + text_size[1] + 4)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
+            draw_bounding_box(img, x1, y1, x2, y2, scores[box2], constants.RED)
 
         text = 'Social Distancing Violations = %d' % len(violation_pairs)
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, 1, 1)[0]
@@ -194,15 +181,15 @@ def main(file_name='mall.mp4', dataset='mall', model_name='YOLO'):
         cv2.putText(img, text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 255, 255), 2, cv2.LINE_AA, False)
 
-        pts_roi_world, pts_roi_cam = get_roi_pts(
-            dataset=dataset, roi_raw=ROIs[dataset], matrix_c2w=transform_cam2world)
+        points_roi_world, points_roi_cam = get_roi_points(
+            dataset=dataset, roi_raw=constants.ROIs[dataset], matrix_c2w=transform_cam2world)
 
         fig = plot_frame_one_row(
             dataset=dataset,
             img_raw=img,
-            pts_roi_cam=pts_roi_cam,
-            pts_roi_world=pts_roi_world,
-            pts_w=pts_world,
+            points_roi_cam=points_roi_cam,
+            points_roi_world=points_roi_world,
+            points_w=points_world,
             pairs=violation_pairs
         )
 
